@@ -15,26 +15,6 @@ if [ "$EUID" -ne 0 ]
   then echo "Please run with sudo, sudo ./run.sh"
   exit
 fi
-echo "Hi, just two questions to start!"
-read -p 'What hostname should we use for this machine?: ' hostname
-if [[ -z "$hostname" ]]; then
-   printf '%s\n' "No hostname entered"
-   exit 1
-else
-   printf "You entered %s " "$hostname"
-   hostnamectl set-hostname $hostname ; echo ""
-fi
-
-while true; do
-printf ""
-read -p "Keep Manjaro XFCE GUI - do you need a screen? (y/n) " yn
-    case $yn in
-        [Yy]* ) gui="1"; break;;
-        [Nn]* ) gui="2"; break;;
-        * ) echo "Please answer yes(y) or no(n).";;
-    esac
-done
-
 echo "Remember current user $u before reboot"
 u=$(logname)
 echo "${u}" > user.log
@@ -45,32 +25,24 @@ echo "1. Updating mirrors and Manjaro"
 pacman-mirrors --country United_States
 yes | pacman -Syyu
 
-echo "2. Install goodies | ntp docker docker-compose glances htop bmon jq whois yay ufw fail2ban git bc nmap smartmontools gnome-disk-utility"
-yes | pacman -Sy mdadm libqalculate dialog ncdu msr-tools ddrescue pigz screen haproxy net-tools ntp docker docker-compose glances htop bmon jq whois yay ufw fail2ban git bc nmap smartmontools qemu-guest-agent iotop gnome-disk-utility
+echo "2. Install goodies | Basic packages"
+yes | pacman -Sy htop bmon whois yay ufw git base-devel nmap gnome-disk-utility
 
 echo "3. Install base-devel for using yay and building packages with AUR"
 yes | pacman -Sy autoconf automake binutils bison fakeroot file findutils flex gawk gcc gettext grep groff gzip libtool m4 make pacman patch pkgconf sed sudo systemd texinfo util-linux which 
 
+echo "3. Install Standard desktop packages"
+yes | yay -S google-chrome vlc steam fish aspell-en libmythes mythes-en languagetool traceroute putty file-roller seahorse-nautilus nautilus-share zlib p7zip unzip zip zziplib visual-studio-code jdk python-pip audacity unetbootin steam gimp pencil2d ark adwaita-icon-theme adwaita-maia anydesk-bin archlinux-appstream-data archlinux-keyring argon2 at-spi2-atk at-spi2-core atk atkmm autoconf automake bleachbit bluez bluez-libs bmenu bolt boost-libs brave-browser brotli btrfs-progs btrfsmaintenance bubblewrap bzip2 cairo cairomm calamares-tools cantarell-fonts cdparanoia celt chromaprint cifs-utils compiler-rt confuse coreutils cpupower deepin-icon-theme deepin-iconthemes-manjaro deja-dup desktop-file-utils device-mapper zsh vim binutils make curl gcc fakeroot vmware-workstation — noconfirm — needed
+
 
 echo "You can login after this reboot"
 
-
-## Pretty MOTD BANNER
-if [ -z "${NO_MOTD_BANNER}" ] ; then
-  if ! grep -q https "/etc/motd" ; then
-    cat << 'EOF' > /etc/motd.new	   
-
-EOF
-    cat /etc/motd >> /etc/motd.new
-    mv /etc/motd.new /etc/motd
-  fi
-fi
 echo "Getting IP and Timezone info"
 ip=$(dig +short myip.opendns.com @resolver1.opendns.com)
 timezone=$(curl https://ipapi.co/$ip/timezone)
 timedatectl set-timezone $timezone
 timedatectl set-ntp true
 echo "Got $timezone from $ip"
+
 echo "All done - Rebooting"
 reboot now
-```
